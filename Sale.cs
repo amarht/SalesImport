@@ -1,8 +1,14 @@
-public class Sale {
-    public int SaleId;
-    public string StoreCode;
-    public string ProductCode;
-    public int Quantity;
-    public float UnitPrice;
-    public DateTime SaleDate;
+public sealed class Sale
+{
+    public int SaleId { get; init; }
+
+    public string StoreCode { get; init; } = "";
+
+    public string ProductCode { get; init; } = "";
+
+    public int Quantity { get; init; }
+
+    public decimal UnitPrice { get; init; }
+
+    public DateTime SaleDate { get; init; }
 }

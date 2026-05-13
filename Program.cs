@@ -2,7 +2,7 @@
 
 public static class CsvStreamReader
 {
-    public static IEnumerable<Sale> ReadSales(string path)
+    public static IEnumerable<(Sale? Sale, string? Error)> ReadSales(string path)
     {
         using var reader = new StreamReader(
             path,
@@ -15,32 +15,111 @@ public static class CsvStreamReader
         reader.ReadLine();
 
         string? line;
+        int lineNumber = 1;
 
         while ((line = reader.ReadLine()) != null)
         {
+            lineNumber++;
+
             var parts = line.Split(',');
 
-            yield return new Sale
+            // Validate column count
+            if (parts.Length != 6)
             {
-                SaleId = int.Parse(parts[0]),
+                yield return (
+                    null,
+                    $"Line {lineNumber}: expected 6 columns, got {parts.Length}"
+                );
 
-                StoreCode = parts[1],
+                continue;
+            }
 
-                ProductCode = parts[2],
+            // Validate SaleId
+            if (!int.TryParse(parts[0], out int saleId))
+            {
+                yield return (
+                    null,
+                    $"Line {lineNumber}: invalid SaleId"
+                );
 
-                Quantity = int.Parse(parts[3]),
+                continue;
+            }
 
-                UnitPrice = float.Parse(
+            // Validate Quantity
+            if (!int.TryParse(parts[3], out int quantity))
+            {
+                yield return (
+                    null,
+                    $"Line {lineNumber}: invalid Quantity"
+                );
+
+                continue;
+            }
+
+            // Validate UnitPrice
+            if (!decimal.TryParse(
                     parts[4],
-                    CultureInfo.InvariantCulture
-                ),
+                    NumberStyles.Number,
+                    CultureInfo.InvariantCulture,
+                    out decimal unitPrice))
+            {
+                yield return (
+                    null,
+                    $"Line {lineNumber}: invalid UnitPrice"
+                );
 
-                SaleDate = DateTime.ParseExact(
+                continue;
+            }
+
+            // Validate SaleDate
+            if (!DateTime.TryParseExact(
                     parts[5],
                     "yyyy-MM-dd",
-                    CultureInfo.InvariantCulture
-                )
-            };
+                    CultureInfo.InvariantCulture,
+                    DateTimeStyles.None,
+                    out DateTime saleDate))
+            {
+                yield return (
+                    null,
+                    $"Line {lineNumber}: invalid SaleDate"
+                );
+
+                continue;
+            }
+
+            // Additional business validation
+            if (quantity <= 0)
+            {
+                yield return (
+                    null,
+                    $"Line {lineNumber}: Quantity must be > 0"
+                );
+
+                continue;
+            }
+
+            if (unitPrice < 0)
+            {
+                yield return (
+                    null,
+                    $"Line {lineNumber}: UnitPrice must be >= 0"
+                );
+
+                continue;
+            }
+
+            yield return (
+                new Sale
+                {
+                    SaleId = saleId,
+                    StoreCode = parts[1],
+                    ProductCode = parts[2],
+                    Quantity = quantity,
+                    UnitPrice = unitPrice,
+                    SaleDate = saleDate
+                },
+                null
+            );
         }
     }
 }
@@ -50,7 +129,7 @@ class Program {
         var salesCsv = CsvStreamReader.ReadSales("Sales.csv");
         
         foreach (var sale in salesCsv) {
-            Console.WriteLine(sale.StoreCode);
+            Console.WriteLine(sale.Sale?.StoreCode);
         }
     }
 }
