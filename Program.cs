@@ -138,7 +138,7 @@ class Program {
                 Sale sale = result.Sale!;
 
                 Console.WriteLine(sale.StoreCode);
-            
+            }
         }
     }
 }
