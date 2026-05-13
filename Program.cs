@@ -1,6 +1,6 @@
 ﻿using System.Globalization;
 
-public static class CsvStreamReader
+public static class SaleReader
 {
     public static IEnumerable<(Sale? Sale, string? Error)> ReadSales(string path)
     {
@@ -126,10 +126,19 @@ public static class CsvStreamReader
 
 class Program {
     public static void Main() {
-        var salesCsv = CsvStreamReader.ReadSales("Sales.csv");
-        
-        foreach (var sale in salesCsv) {
-            Console.WriteLine(sale.Sale?.StoreCode);
+        string currentFolder = Directory.GetCurrentDirectory();
+
+        foreach (string file in Directory.EnumerateFiles(currentFolder, "*.csv")) {
+            foreach (var result in SaleReader.ReadSales(file)) {
+                if (result.Error != null) {
+                    Console.WriteLine(result.Error);
+                    continue;
+                }
+
+                Sale sale = result.Sale!;
+
+                Console.WriteLine(sale.StoreCode);
+            
         }
     }
 }
