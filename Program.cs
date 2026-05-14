@@ -38,12 +38,12 @@ public static class SaleReader
                 continue;
             }
 
-            // Validate SaleId
-            if (!int.TryParse(parts[0], out int saleId))
+            // Validate SaleNumber
+            if (!int.TryParse(parts[0], out int saleNumber))
             {
                 yield return (
                     null,
-                    $"Line {lineNumber}: invalid SaleId"
+                    $"Line {lineNumber}: invalid SaleNumber"
                 );
 
                 continue;
@@ -61,11 +61,11 @@ public static class SaleReader
             }
 
             // Validate UnitPrice
-            if (!decimal.TryParse(
+            if (!float.TryParse(
                     parts[4],
                     NumberStyles.Number,
                     CultureInfo.InvariantCulture,
-                    out decimal unitPrice))
+                    out float unitPrice))
             {
                 yield return (
                     null,
@@ -115,7 +115,7 @@ public static class SaleReader
             yield return (
                 new Sale
                 {
-                    SaleId = saleId,
+                    SaleNumber = saleNumber,
                     StoreCode = parts[1],
                     ProductCode = parts[2],
                     Quantity = quantity,
@@ -129,7 +129,7 @@ public static class SaleReader
 }
 
 class Program {
-    public static void Main(string[] args) {
+    public static async Task Main(string[] args) {
         var host = Host.CreateDefaultBuilder(args)
             .ConfigureServices((context, services) => {
                     var connectionString = context.Configuration.GetConnectionString("DefaultConnection");
@@ -149,6 +149,9 @@ class Program {
 
         string currentFolder = Directory.GetCurrentDirectory();
 
+        const int batchSize = 5000;
+        ulong count = 0;
+
         foreach (string file in Directory.EnumerateFiles(currentFolder, "*.csv")) {
             foreach (var result in SaleReader.ReadSales(file)) {
                 if (result.Error != null) {
@@ -158,8 +161,14 @@ class Program {
 
                 Sale sale = result.Sale!;
 
-                Console.WriteLine(sale.StoreCode);
+                await saleService.CreateSaleAsync(sale);
+                count++;
+
+                if (count % batchSize == 0) {
+                    await saleService.SaveChangesAsync();
+                }
             }
         }
+        await saleService.SaveChangesAsync();
     }
 }
