@@ -1,4 +1,8 @@
 ﻿using System.Globalization;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 
 public static class SaleReader
 {
@@ -125,7 +129,24 @@ public static class SaleReader
 }
 
 class Program {
-    public static void Main() {
+    public static void Main(string[] args) {
+        var host = Host.CreateDefaultBuilder(args)
+            .ConfigureServices((context, services) => {
+                    var connectionString = context.Configuration.GetConnectionString("DefaultConnection");
+
+                    // EF Core
+                    services.AddDbContext<AppDbContext>(options => options.UseSqlServer(connectionString));
+
+                    services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
+
+                    services.AddScoped<SaleService>();
+        })
+        .Build();
+
+        using var scope = host.Services.CreateScope();
+
+        var saleService = scope.ServiceProvider.GetRequiredService<SaleService>();
+
         string currentFolder = Directory.GetCurrentDirectory();
 
         foreach (string file in Directory.EnumerateFiles(currentFolder, "*.csv")) {
