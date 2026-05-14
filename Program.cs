@@ -78,7 +78,7 @@ public static class SaleReader
             // Validate SaleDate
             if (!DateTime.TryParseExact(
                     parts[5],
-                    "yyyy-MM-dd",
+                    "yyyy-MM-dd HH:mm:ss",
                     CultureInfo.InvariantCulture,
                     DateTimeStyles.None,
                     out DateTime saleDate))
