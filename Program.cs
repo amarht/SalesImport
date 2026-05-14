@@ -135,7 +135,14 @@ class Program {
                     var connectionString = context.Configuration.GetConnectionString("DefaultConnection");
 
                     // EF Core
-                    services.AddDbContext<AppDbContext>(options => options.UseSqlServer(connectionString));
+                    services.AddDbContext<AppDbContext>(options => {
+                            options.UseSqlServer(connectionString);
+
+                            options.UseLoggerFactory(null);
+
+                            options.EnableSensitiveDataLogging(false);
+                            options.EnableDetailedErrors(false);
+                    });
 
                     services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
 
@@ -144,13 +151,16 @@ class Program {
         .Build();
 
         using var scope = host.Services.CreateScope();
+        var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+
+        db.ChangeTracker.AutoDetectChangesEnabled = false;
 
         var saleService = scope.ServiceProvider.GetRequiredService<SaleService>();
 
         string currentFolder = Directory.GetCurrentDirectory();
 
-        const int batchSize = 5000;
-        ulong count = 0;
+        const int batchSize = 100000;
+        List<Sale> batch = new List<Sale>(batchSize);
 
         foreach (string file in Directory.EnumerateFiles(currentFolder, "*.csv")) {
             foreach (var result in SaleReader.ReadSales(file)) {
@@ -159,16 +169,21 @@ class Program {
                     continue;
                 }
 
-                Sale sale = result.Sale!;
+                batch.Add(result.Sale!);
 
-                await saleService.CreateSaleAsync(sale);
-                count++;
-
-                if (count % batchSize == 0) {
+                if (batch.Count >= batchSize) {
+                    await saleService.CreateSalesAsync(batch);
                     await saleService.SaveChangesAsync();
+                    db.ChangeTracker.Clear();
+                    batch.Clear();
                 }
             }
         }
-        await saleService.SaveChangesAsync();
+
+        if (batch.Count > 0) {
+            await saleService.CreateSalesAsync(batch);
+            await saleService.SaveChangesAsync();
+            db.ChangeTracker.Clear();
+        }
     }
 }

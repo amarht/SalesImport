@@ -3,6 +3,7 @@ public interface IRepository<T> where T : class {
     Task<T?> GetByIdAsync(int id);
 
     Task AddAsync(T entity);
+    Task AddRangeAsync(List<T> entities);
     void Update(T entity);
     void Delete(T entity);
 

@@ -17,6 +17,10 @@ public class SaleService {
         await _repository.AddAsync(sale);
     }
 
+    public async Task CreateSalesAsync(List<Sale> sales) {
+        await _repository.AddRangeAsync(sales);
+    }
+
     public async Task SaveChangesAsync() {
         await _repository.SaveChangesAsync();
     }
