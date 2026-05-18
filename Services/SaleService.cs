@@ -1,7 +1,7 @@
 public class SaleService {
-    private readonly IRepository<Sale> _repository;
+    private readonly ISaleRepository _repository;
 
-    public SaleService(IRepository<Sale> repository) {
+    public SaleService(ISaleRepository repository) {
         _repository = repository;
     }
 

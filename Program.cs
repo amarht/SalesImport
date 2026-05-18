@@ -145,6 +145,7 @@ class Program {
                     });
 
                     services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
+                    services.AddScoped<ISaleRepository, SaleRepository>();
 
                     services.AddScoped<SaleService>();
         })
@@ -159,7 +160,7 @@ class Program {
 
         string currentFolder = Directory.GetCurrentDirectory();
 
-        const int batchSize = 10000;
+        const int batchSize = 5000;
         List<Sale> batch = new List<Sale>(batchSize);
 
         foreach (string file in Directory.EnumerateFiles(currentFolder, "*.csv")) {
