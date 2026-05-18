@@ -1,4 +1,6 @@
 using Microsoft.EntityFrameworkCore;
+using EFCore.BulkExtensions;
+
 
 public class Repository<T> : IRepository<T> where T : class {
     protected readonly AppDbContext _context;
@@ -31,6 +33,10 @@ public class Repository<T> : IRepository<T> where T : class {
 
     public void Delete(T entity) {
         _dbSet.Remove(entity);
+    }
+
+    public async Task BulkInsertAsync(List<T> entities) {
+        await _context.BulkInsertAsync(entities);
     }
 
     public async Task SaveChangesAsync() {

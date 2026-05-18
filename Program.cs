@@ -159,7 +159,7 @@ class Program {
 
         string currentFolder = Directory.GetCurrentDirectory();
 
-        const int batchSize = 100000;
+        const int batchSize = 10000;
         List<Sale> batch = new List<Sale>(batchSize);
 
         foreach (string file in Directory.EnumerateFiles(currentFolder, "*.csv")) {
@@ -172,18 +172,20 @@ class Program {
                 batch.Add(result.Sale!);
 
                 if (batch.Count >= batchSize) {
-                    await saleService.CreateSalesAsync(batch);
-                    await saleService.SaveChangesAsync();
-                    db.ChangeTracker.Clear();
+                    // await saleService.CreateSalesAsync(batch);
+                    // await saleService.SaveChangesAsync();
+                    // db.ChangeTracker.Clear();
+                    await saleService.BulkInsertAsync(batch);
                     batch.Clear();
                 }
             }
         }
 
         if (batch.Count > 0) {
-            await saleService.CreateSalesAsync(batch);
-            await saleService.SaveChangesAsync();
-            db.ChangeTracker.Clear();
+            // await saleService.CreateSalesAsync(batch);
+            // await saleService.SaveChangesAsync();
+            // db.ChangeTracker.Clear();
+            await saleService.BulkInsertAsync(batch);
         }
     }
 }
