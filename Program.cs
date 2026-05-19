@@ -160,7 +160,7 @@ class Program {
 
         string currentFolder = Directory.GetCurrentDirectory();
 
-        const int batchSize = 5000;
+        const int batchSize = 100000;
         List<Sale> batch = new List<Sale>(batchSize);
 
         foreach (string file in Directory.EnumerateFiles(currentFolder, "*.csv")) {

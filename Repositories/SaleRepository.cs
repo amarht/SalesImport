@@ -26,7 +26,7 @@ public class SaleRepository : Repository<Sale>, ISaleRepository {
 
         bulkCopy.DestinationTableName = "Sales";
 
-        bulkCopy.BatchSize = 5000;
+        bulkCopy.BatchSize = 100000;
 
         bulkCopy.BulkCopyTimeout = 0;
 
@@ -55,34 +55,8 @@ public class SaleRepository : Repository<Sale>, ISaleRepository {
             "UnitPrice",
             "UnitPrice");
 
-        var table = CreateDataTable(sales);
-
-        await bulkCopy.WriteToServerAsync(table);
+        using var reader = new SaleDataReader(sales);
+        await bulkCopy.WriteToServerAsync(reader);
     }
 
-    private DataTable CreateDataTable(List<Sale> sales) {
-        var table = new DataTable();
-
-        // NO identity column
-        table.Columns.Add("SaleNumber", typeof(string));
-        table.Columns.Add("ProductCode", typeof(string));
-        table.Columns.Add("Quantity", typeof(int));
-        table.Columns.Add("SaleDate", typeof(DateTime));
-        table.Columns.Add("StoreCode", typeof(string));
-        table.Columns.Add("UnitPrice", typeof(float));
-
-        foreach (var sale in sales)
-        {
-            table.Rows.Add(
-                sale.SaleNumber,
-                sale.ProductCode,
-                sale.Quantity,
-                sale.SaleDate,
-                sale.StoreCode,
-                sale.UnitPrice
-            );
-        }
-
-        return table;
-    }
 }
