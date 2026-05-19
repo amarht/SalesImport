@@ -1,5 +1,6 @@
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage;
 using System.Data;
 
 public class SaleRepository : Repository<Sale>, ISaleRepository {
@@ -19,44 +20,53 @@ public class SaleRepository : Repository<Sale>, ISaleRepository {
             await connection.OpenAsync();
         }
 
-        using var bulkCopy = new SqlBulkCopy(
-                connection,
-                SqlBulkCopyOptions.TableLock,
-                null);
+        await using var transaction = await _context.Database.BeginTransactionAsync();
 
-        bulkCopy.DestinationTableName = "Sales";
+        try {
+            var sqlTransaction = (SqlTransaction)transaction.GetDbTransaction();
+            using var bulkCopy = new SqlBulkCopy(
+                    connection,
+                    SqlBulkCopyOptions.TableLock,
+                    sqlTransaction);
 
-        bulkCopy.BatchSize = 100000;
+            bulkCopy.DestinationTableName = "Sales";
 
-        bulkCopy.BulkCopyTimeout = 0;
+            bulkCopy.BatchSize = 100000;
 
-        // Column mappings
-        bulkCopy.ColumnMappings.Add(
-            "SaleNumber",
-            "SaleNumber");
+            bulkCopy.BulkCopyTimeout = 0;
 
-        bulkCopy.ColumnMappings.Add(
-            "ProductCode",
-            "ProductCode");
+            // Column mappings
+            bulkCopy.ColumnMappings.Add(
+                "SaleNumber",
+                "SaleNumber");
 
-        bulkCopy.ColumnMappings.Add(
-            "Quantity",
-            "Quantity");
+            bulkCopy.ColumnMappings.Add(
+                "ProductCode",
+                "ProductCode");
 
-        bulkCopy.ColumnMappings.Add(
-            "SaleDate",
-            "SaleDate");
+            bulkCopy.ColumnMappings.Add(
+                "Quantity",
+                "Quantity");
 
-        bulkCopy.ColumnMappings.Add(
-            "StoreCode",
-            "StoreCode");
+            bulkCopy.ColumnMappings.Add(
+                "SaleDate",
+                "SaleDate");
 
-        bulkCopy.ColumnMappings.Add(
-            "UnitPrice",
-            "UnitPrice");
+            bulkCopy.ColumnMappings.Add(
+                "StoreCode",
+                "StoreCode");
 
-        using var reader = new SaleDataReader(sales);
-        await bulkCopy.WriteToServerAsync(reader);
+            bulkCopy.ColumnMappings.Add(
+                "UnitPrice",
+                "UnitPrice");
+
+            using var reader = new SaleDataReader(sales);
+            await bulkCopy.WriteToServerAsync(reader);
+            await transaction.CommitAsync();
+        } catch {
+            await transaction.RollbackAsync();
+            throw;
+        }
     }
 
 }
