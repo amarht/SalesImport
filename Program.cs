@@ -158,35 +158,49 @@ class Program {
 
         var saleService = scope.ServiceProvider.GetRequiredService<SaleService>();
 
-        string currentFolder = Directory.GetCurrentDirectory();
-
-        const int batchSize = 100000;
-        List<Sale> batch = new List<Sale>(batchSize);
-
-        foreach (string file in Directory.EnumerateFiles(currentFolder, "*.csv")) {
-            foreach (var result in SaleReader.ReadSales(file)) {
-                if (result.Error != null) {
-                    Console.WriteLine(result.Error);
-                    continue;
-                }
-
-                batch.Add(result.Sale!);
-
-                if (batch.Count >= batchSize) {
-                    // await saleService.CreateSalesAsync(batch);
-                    // await saleService.SaveChangesAsync();
-                    // db.ChangeTracker.Clear();
-                    await saleService.BulkInsertAsync(batch);
-                    batch.Clear();
-                }
-            }
+        foreach (var strRev in await saleService.GetRevenueByStore()) {
+            Console.WriteLine($"{strRev.Store}: {strRev.Revenue} €");
         }
 
-        if (batch.Count > 0) {
-            // await saleService.CreateSalesAsync(batch);
-            // await saleService.SaveChangesAsync();
-            // db.ChangeTracker.Clear();
-            await saleService.BulkInsertAsync(batch);
+        foreach (var prodRev in await saleService.GetRevenueByProduct()) {
+            Console.WriteLine($"{prodRev.Product}: {prodRev.Revenue} €");
+        }
+
+        foreach (var prod in await saleService.GetTop5BestProducts()) {
+            Console.WriteLine($"{prod.Product}: {prod.Sold}");
+        }
+
+        if (args.Length > 0 && args[0] == "import") {
+            string currentFolder = Directory.GetCurrentDirectory();
+
+            const int batchSize = 100000;
+            List<Sale> batch = new List<Sale>(batchSize);
+
+            foreach (string file in Directory.EnumerateFiles(currentFolder, "*.csv")) {
+                foreach (var result in SaleReader.ReadSales(file)) {
+                    if (result.Error != null) {
+                        Console.WriteLine(result.Error);
+                        continue;
+                    }
+
+                    batch.Add(result.Sale!);
+
+                    if (batch.Count >= batchSize) {
+                        // await saleService.CreateSalesAsync(batch);
+                        // await saleService.SaveChangesAsync();
+                        // db.ChangeTracker.Clear();
+                        await saleService.BulkInsertAsync(batch);
+                        batch.Clear();
+                    }
+                }
+            }
+
+            if (batch.Count > 0) {
+                // await saleService.CreateSalesAsync(batch);
+                // await saleService.SaveChangesAsync();
+                // db.ChangeTracker.Clear();
+                await saleService.BulkInsertAsync(batch);
+            }
         }
     }
 }

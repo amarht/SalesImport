@@ -69,4 +69,70 @@ public class SaleRepository : Repository<Sale>, ISaleRepository {
         }
     }
 
+    public async Task<List<StoreRevenueDto>> GetRevenueByStore() {
+        return await _context.Sales
+            .AsNoTracking()
+            .GroupBy(s => s.StoreCode)
+            .Select(g => new StoreRevenueDto {
+                    Store = g.Key,
+                    Revenue = g.Sum(x => x.Quantity * x.UnitPrice)
+                    })
+            .OrderByDescending(x => x.Revenue)
+            .Take(10)
+            .ToListAsync();
+    }
+
+    public async Task<List<ProductRevenueDto>> GetRevenueByProduct() {
+        return await _context.Sales
+            .AsNoTracking()
+            .GroupBy(s => s.ProductCode)
+            .Select(g => new ProductRevenueDto {
+                    Product = g.Key,
+                    Revenue = g.Sum(x => x.Quantity * x.UnitPrice)
+                    })
+            .OrderByDescending(x => x.Revenue)
+            .Take(10)
+            .ToListAsync();
+    }
+
+    public async Task<List<Top5BestProductsDto>> GetTop5BestProducts() {
+        return await _context.Sales
+            .AsNoTracking()
+            .GroupBy(s => s.ProductCode)
+            .Select(g => new Top5BestProductsDto {
+                    Product = g.Key,
+                    Sold = g.Count()
+                    })
+            .OrderByDescending(x => x.Sold)
+            .Take(5)
+            .ToListAsync();
+    }
+
+    public async Task<List<Sale>> GetSalesByStore(string storeCode) {
+        return await _context.Sales
+            .AsNoTracking()
+            .Where(s => s.StoreCode == storeCode)
+            .ToListAsync();
+    }
+
+    public async Task<List<Sale>> GetSalesByProduct(string productCode) {
+        return await _context.Sales
+            .AsNoTracking()
+            .Where(s => s.ProductCode == productCode)
+            .ToListAsync();
+    }
+
+    public async Task<List<Sale>> GetSalesByDate(DateTime date) {
+        return await _context.Sales
+            .AsNoTracking()
+            .Where(s => s.SaleDate.Date == date.Date)
+            .ToListAsync();
+    }
+
+    public async Task<List<Sale>> GetSalesByMinQuantity(int minQuantity) {
+        return await _context.Sales
+            .AsNoTracking()
+            .Where(s => s.Quantity >= minQuantity)
+            .ToListAsync();
+    }
 }
