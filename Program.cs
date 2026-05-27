@@ -158,18 +158,6 @@ class Program {
 
         var saleService = scope.ServiceProvider.GetRequiredService<SaleService>();
 
-        foreach (var strRev in await saleService.GetRevenueByStore()) {
-            Console.WriteLine($"{strRev.Store}: {strRev.Revenue} €");
-        }
-
-        foreach (var prodRev in await saleService.GetRevenueByProduct()) {
-            Console.WriteLine($"{prodRev.Product}: {prodRev.Revenue} €");
-        }
-
-        foreach (var prod in await saleService.GetTop5BestProducts()) {
-            Console.WriteLine($"{prod.Product}: {prod.Sold}");
-        }
-
         if (args.Length > 0 && args[0] == "import") {
             string currentFolder = Directory.GetCurrentDirectory();
 
@@ -200,6 +188,18 @@ class Program {
                 // await saleService.SaveChangesAsync();
                 // db.ChangeTracker.Clear();
                 await saleService.BulkInsertAsync(batch);
+            }
+        } else {
+            foreach (var strRev in await saleService.GetRevenueByStore()) {
+                Console.WriteLine($"{strRev.Store}: {strRev.Revenue} €");
+            }
+
+            foreach (var prodRev in await saleService.GetRevenueByProduct()) {
+                Console.WriteLine($"{prodRev.Product}: {prodRev.Revenue} €");
+            }
+
+            foreach (var prod in await saleService.GetTop5BestProducts()) {
+                Console.WriteLine($"{prod.Product}: {prod.Sold}");
             }
         }
     }

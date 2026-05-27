@@ -8,4 +8,11 @@ public class AppDbContext : DbContext
         : base(options)
     {
     }
+
+    protected override void OnModelCreating(ModelBuilder modelBuilder) {
+        modelBuilder.Entity<Sale>().HasIndex(s => s.StoreCode);
+        modelBuilder.Entity<Sale>().HasIndex(s => s.ProductCode);
+        modelBuilder.Entity<Sale>().HasIndex(s => s.SaleDate);
+        modelBuilder.Entity<Sale>().HasIndex(s => s.Quantity);
+    }
 }
