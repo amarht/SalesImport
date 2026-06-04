@@ -39,22 +39,20 @@ public static class SaleReader
 
         int lineNumber = 0;
 
-        while (!reader.EndOfStream)
+        long bytesRead = start;
+
+        string? line = null;
+
+        while ((line = reader.ReadLine()) != null)
         {
-            long currentPos = fs.Position;
-
-            if (currentPos >= end)
-                break;
-
             lineNumber++;
 
-            string? line = reader.ReadLine();
+            bytesRead += Encoding.UTF8.GetByteCount(line) + Environment.NewLine.Length;
 
-            if (line == null)
+            if (bytesRead > end)
                 break;
 
             var parts = line.Split(',');
-
 
             // Validate column count
             if (parts.Length != 6)
