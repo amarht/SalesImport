@@ -1,10 +1,14 @@
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
+using Microsoft.Extensions.Logging;
 using System.Data;
 
 public class SaleRepository : Repository<Sale>, ISaleRepository {
-    public SaleRepository(AppDbContext context) : base(context) {
+    private readonly ILogger<SaleRepository> _logger;
+
+    public SaleRepository(AppDbContext context, ILogger<SaleRepository> logger) : base(context) {
+        _logger = logger;
     }
 
     public async Task BulkInsertAsync(List<Sale> sales) {
@@ -64,6 +68,7 @@ public class SaleRepository : Repository<Sale>, ISaleRepository {
             await bulkCopy.WriteToServerAsync(reader);
             await transaction.CommitAsync();
         } catch {
+            _logger.LogError("Failed to bulk insert {Count} sales, rolling back...", sales.Count);
             await transaction.RollbackAsync();
             throw;
         }

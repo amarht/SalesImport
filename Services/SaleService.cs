@@ -1,8 +1,13 @@
+using Microsoft.Extensions.Logging;
+
 public class SaleService {
     private readonly ISaleRepository _repository;
+    private readonly ILogger<SaleService> _logger;
 
-    public SaleService(ISaleRepository repository) {
+    public SaleService(ISaleRepository repository,
+            ILogger<SaleService> logger) {
         _repository = repository;
+        _logger = logger;
     }
 
     public async Task CreateSaleAsync(Sale sale) {
@@ -22,7 +27,10 @@ public class SaleService {
     }
 
     public async Task BulkInsertAsync(List<Sale> sales) {
+        _logger.LogInformation("Starting bulk insert of {Count} sales",
+                sales.Count);
         await _repository.BulkInsertAsync(sales);
+        _logger.LogInformation("Bulk insert completed");
     }
 
     public async Task<List<StoreRevenueDto>> GetRevenueByStore() {
