@@ -87,6 +87,20 @@ public class SaleRepository : Repository<Sale>, ISaleRepository {
             .ToListAsync();
     }
 
+    public async Task<List<StoreRevenueDto>> GetNextPageRevenueByStore(int lastSaleNumber, int pageSize) {
+        return await _context.Sales
+            .AsNoTracking()
+            .GroupBy(s => s.StoreCode)
+            .Select(g => new StoreRevenueDto {
+                    Store = g.Key,
+                    Revenue = g.Sum(x => x.Quantity * x.UnitPrice)
+                    })
+            .OrderByDescending(x => x.Revenue)
+            .Skip((lastSaleNumber - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync();
+    }
+
     public async Task<List<ProductRevenueDto>> GetRevenueByProduct() {
         return await _context.Sales
             .AsNoTracking()

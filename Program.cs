@@ -362,6 +362,14 @@ class Program {
             Console.WriteLine($"{strRev.Store}: {strRev.Revenue} €");
         }
 
+        int pageSize = 10;
+        for (int i = 1; i < 5; i++) {
+            List<StoreRevenueDto> sR = await saleService.GetNextPageRevenueByStore(i * pageSize, pageSize);
+            foreach (var strRev in sR) {
+                Console.WriteLine($"{strRev.Store}: {strRev.Revenue} €");
+            }
+        }
+
         foreach (var prodRev in await saleService.GetRevenueByProduct()) {
             Console.WriteLine($"{prodRev.Product}: {prodRev.Revenue} €");
         }

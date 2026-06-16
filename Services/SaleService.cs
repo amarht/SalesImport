@@ -37,6 +37,10 @@ public class SaleService {
         return await _repository.GetRevenueByStore();
     }
 
+    public async Task<List<StoreRevenueDto>> GetNextPageRevenueByStore(int lastPageNumber, int pageSize) {
+        return await _repository.GetNextPageRevenueByStore(lastPageNumber, pageSize);
+    }
+
     public async Task<List<ProductRevenueDto>> GetRevenueByProduct() {
         return await _repository.GetRevenueByProduct();
     }
